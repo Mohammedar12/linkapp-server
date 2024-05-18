@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
@@ -10,9 +10,13 @@ const UserSchema = new Schema({
   },
   phone: {
     type: Number,
+    // required: true,
+  },
+  hash: {
+    type: String,
     required: true,
   },
-  password: {
+  salt: {
     type: String,
     required: true,
   },
@@ -30,4 +34,4 @@ const UserSchema = new Schema({
   },
 });
 
-module.exports = mongoose.model("User", UserSchema);
+export const User = mongoose.model("User", UserSchema);

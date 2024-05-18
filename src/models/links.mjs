@@ -1,15 +1,19 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
-const HeaderSchema = new Schema({
+const LinksSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
     ref: "User",
     index: true,
   },
-  header: {
+  title: {
     type: String,
+  },
+  url: {
+    type: String,
+    required: true,
   },
   display: {
     type: Boolean,
@@ -24,4 +28,4 @@ const HeaderSchema = new Schema({
   },
 });
 
-module.exports = mongoose.model("Header", HeaderSchema);
+export const Links = mongoose.model("Links", LinksSchema);

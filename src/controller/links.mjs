@@ -1,8 +1,8 @@
-const Links = require("../models/links");
-const { tryCatch } = require("../utils/tryCatch");
-require("dotenv");
+import { Links } from "../models/links.mjs";
+import { tryCatch } from "../utils/tryCatch.mjs";
+import "dotenv";
 
-module.exports = {
+const linksController = {
   index: tryCatch(async (req, res) => {
     const links = await Links.find();
 
@@ -34,6 +34,7 @@ module.exports = {
       url: url,
       title: title || domain,
       type: "Link",
+      display: url == "" ? false : true,
     });
 
     const addlink = await newLink.save();
@@ -47,6 +48,7 @@ module.exports = {
       {
         url,
         title,
+        display: url == "" ? false : true,
       },
       { new: true }
     );
@@ -59,5 +61,12 @@ module.exports = {
   }),
   remove: tryCatch(async (req, res) => {
     const links = await Links.findByIdAndDelete({ _id: req.params.id });
+    if (!links) {
+      return res.status(404).json({ message: "links not found" });
+    }
+
+    res.json({ message: "links Has Been Removed" });
   }),
 };
+
+export default linksController;

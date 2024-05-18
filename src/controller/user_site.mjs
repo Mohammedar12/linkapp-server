@@ -1,8 +1,8 @@
-const UserSite = require("../models/user_site");
-const { tryCatch } = require("../utils/tryCatch");
-require("dotenv");
+import { UserSite } from "../models/user_site.mjs";
+import { tryCatch } from "../utils/tryCatch.mjs";
+import "dotenv";
 
-module.exports = {
+const UserSiteController = {
   index: tryCatch(async (req, res) => {
     const slug = req.params.slug;
     const site = await UserSite.findOne({ slug });
@@ -36,3 +36,5 @@ module.exports = {
     res.json(site);
   }),
 };
+
+export default UserSiteController;

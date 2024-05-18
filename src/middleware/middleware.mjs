@@ -1,4 +1,4 @@
-const AppError = require("../helpers/AppError");
+import AppError from "../helpers/AppError.mjs";
 
 const errorHandler = (error, req, res, next) => {
   if (error instanceof AppError) {
@@ -11,4 +11,4 @@ const errorHandler = (error, req, res, next) => {
   return res.status(500).send(error.message);
 };
 
-module.exports = errorHandler;
+export default errorHandler;
