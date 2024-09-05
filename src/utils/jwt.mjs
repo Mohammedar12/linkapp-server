@@ -12,7 +12,7 @@ const PRIV_KEY = fs.readFileSync(__dirname + "/../private_key.pem", "utf8");
 const generateToken = (user) => {
   const _id = user._id;
 
-  const expiresIn = "4h";
+  const expiresIn = "15m";
 
   const payload = {
     sub: _id,

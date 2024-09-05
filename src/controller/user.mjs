@@ -7,13 +7,24 @@ import client from "./../services/redis.mjs";
 import { genPassword, validPassword } from "../utils/password.mjs";
 
 const UserController = {
+  user: tryCatch(async (req, res) => {
+    const id = req.cookies["id"];
+
+    const user = await User.findById({ _id: id });
+
+    if (!user) {
+      return res.status(401).json({ message: "User Not Exists !" });
+    }
+
+    res.json(user);
+  }),
   signUp: tryCatch(async (req, res) => {
-    const { email, password, phone, role, avatar } = req.body;
+    const { email, password, username, role, avatar } = req.body;
 
     const checkUser = await User.findOne({ email });
 
     if (checkUser) {
-      return res.status(409).json({ message: "User Already Exists ! " });
+      return res.status(401).json({ message: "User Already Exists ! " });
     }
 
     const saltHash = genPassword(password);
@@ -23,13 +34,34 @@ const UserController = {
 
     const newUser = User({
       email: email,
-      phone: phone,
+      username: username,
       hash: hash,
       salt: salt,
     });
 
     const user = await newUser.save();
-    res.json(user);
+
+    // Generate a JWT token for the new user
+    const token = generateToken(user);
+
+    // Set the JWT token in a cookie
+    res.cookie("jwt", token, {
+      secure: false, // Set to true if using HTTPS
+      httpOnly: true,
+    });
+
+    res.cookie("id", user._id, {
+      secure: false, // Set to true if using HTTPS
+      httpOnly: true,
+    });
+
+    res.json({
+      email: user.email,
+      token,
+      userId: user._id,
+      avatar: user.avatar.url,
+      createdAt: user.createdAt,
+    });
   }),
   login: tryCatch(async (req, res) => {
     const { email, password, role, avatar } = req.body;
@@ -37,7 +69,7 @@ const UserController = {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(409).json({ message: "User Not Exists !" });
+      return res.status(401).json({ message: "User Not Exists !" });
     }
 
     const checkPass = validPassword(password, user.hash, user.salt);
@@ -52,10 +84,14 @@ const UserController = {
     res.cookie("jwt", token, {
       secure: false,
       httpOnly: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie("id", user._id, {
       secure: false,
       httpOnly: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({

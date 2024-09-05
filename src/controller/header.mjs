@@ -4,7 +4,9 @@ import "dotenv";
 
 const headerController = {
   index: tryCatch(async (req, res) => {
-    const headers = await Header.find();
+    const user = req.cookies["id"];
+
+    const headers = await Header.find({ user: user }).sort({ updatedAt: -1 });
 
     if (!headers) {
       return res.json({
@@ -14,7 +16,6 @@ const headerController = {
     res.json(headers);
   }),
   id: tryCatch(async (req, res) => {
-    const user = req.body.user;
     const headers = await Header.find();
 
     if (!headers) {
@@ -23,26 +24,28 @@ const headerController = {
     res.json(headers);
   }),
   create: tryCatch(async (req, res) => {
-    const { header, user } = req.body;
+    const { title } = req.body;
+    const id = req.cookies["id"];
 
     const newHeader = Header({
-      header: header,
-      display: header == "" ? false : true,
+      user: id,
+      title: title,
+      display: title == "" ? false : true,
       type: "Header",
-      user,
     });
 
     const addHeader = await newHeader.save();
     res.json(addHeader);
   }),
   upadte: tryCatch(async (req, res) => {
-    const { header } = req.body;
+    const { title, index } = req.body;
 
     const updatedHeader = await Header.findByIdAndUpdate(
       req.params.id,
       {
-        header,
-        display: header == "" ? false : true,
+        title,
+        display: title == "" ? false : true,
+        index: index,
       },
       { new: true }
     );

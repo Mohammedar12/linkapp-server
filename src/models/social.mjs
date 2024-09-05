@@ -2,28 +2,18 @@ import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
-const LinksSchema = new Schema({
+const SocialSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
     ref: "User",
     index: true,
   },
-  title: {
-    type: String,
-  },
   url: {
     type: String,
-    required: true,
   },
   display: {
     type: Boolean,
     default: false,
-  },
-  type: {
-    type: String,
-  },
-  index: {
-    type: Number,
   },
   createdAt: {
     type: Date,
@@ -31,4 +21,4 @@ const LinksSchema = new Schema({
   },
 });
 
-export const Links = mongoose.model("Links", LinksSchema);
+export const Social = mongoose.model("Social", SocialSchema);

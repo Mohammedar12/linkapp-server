@@ -31,6 +31,8 @@ const verfyReq = async (jwt_payload, done) => {
     const user = await User.findById(jwt_payload.sub);
 
     if (user) {
+      console.log("wroks passport ", user);
+
       return done(null, user);
     } else {
       console.log("User not found");

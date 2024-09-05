@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import passport from "passport";
-import redis from "redis";
+// const http = require("http");
 import dbConnect from "./config/db.mjs";
 import "./auth/passport.mjs";
 import user from "./route/user.mjs";
@@ -22,7 +22,11 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 const corsOptions = {
-  origin: ["http://localhost:3000"],
+  origin: [
+    "http://localhost:3000",
+    "http://192.168.100.32:3000",
+    "https://j928fhtn-3000.euw.devtunnels.ms",
+  ],
   credentials: true,
 };
 

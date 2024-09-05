@@ -8,9 +8,9 @@ const UserSchema = new Schema({
     unique: true,
     required: true,
   },
-  phone: {
-    type: Number,
-    // required: true,
+  username: {
+    type: String,
+    required: true,
   },
   hash: {
     type: String,

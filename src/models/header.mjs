@@ -8,7 +8,7 @@ const HeaderSchema = new Schema({
     ref: "User",
     index: true,
   },
-  header: {
+  title: {
     type: String,
   },
   display: {
@@ -19,6 +19,13 @@ const HeaderSchema = new Schema({
     type: String,
   },
   createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  index: {
+    type: Number,
+  },
+  updatedAt: {
     type: Date,
     default: Date.now,
   },

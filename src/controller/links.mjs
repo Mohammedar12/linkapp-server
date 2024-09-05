@@ -4,7 +4,8 @@ import "dotenv";
 
 const linksController = {
   index: tryCatch(async (req, res) => {
-    const links = await Links.find();
+    const user = req.cookies["id"];
+    const links = await Links.find({ user });
 
     if (!links) {
       return res.json({
@@ -20,8 +21,8 @@ const linksController = {
     res.json(links);
   }),
   create: tryCatch(async (req, res) => {
-    const { url, title } = req.body;
-
+    const { url, title, type } = req.body;
+    const id = req.cookies["id"];
     const extractDomain = (url) => {
       const pattern = /(?:https?:\/\/)?(?:www\.)?([^\/.:]+)/;
       const match = url.match(pattern);
@@ -31,17 +32,18 @@ const linksController = {
     const domain = extractDomain(url);
 
     const newLink = Links({
-      url: url,
+      user: id,
+      url: type !== "Header" && url,
       title: title || domain,
-      type: "Link",
-      display: url == "" ? false : true,
+      type: type,
+      display: title == "" ? false : true,
     });
 
     const addlink = await newLink.save();
     res.json(addlink);
   }),
   upadte: tryCatch(async (req, res) => {
-    const { url, title } = req.body;
+    const { url, title, index } = req.body;
 
     const updatedLink = await Links.findByIdAndUpdate(
       req.params.id,
@@ -49,6 +51,7 @@ const linksController = {
         url,
         title,
         display: url == "" ? false : true,
+        index: index,
       },
       { new: true }
     );
