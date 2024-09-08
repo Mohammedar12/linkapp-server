@@ -81,7 +81,7 @@ const UserSiteController = {
   update: tryCatch(async (req, res) => {
     const { social, slug, title, about, skills, location, experience } =
       req.body;
-    let { theme } = req.body;
+    let theme = req.body.theme ? JSON.parse(req.body.theme) : {};
     const id = req.cookies["id"];
 
     let avatar = null;
@@ -94,20 +94,10 @@ const UserSiteController = {
       }
       if (req.files.bgImage) {
         bgImage = await handleFileUpload(req.files.bgImage[0], "backgrounds");
-      }
-    }
-
-    // Parse theme if it's defined
-    if (theme) {
-      try {
-        theme = JSON.parse(theme);
         theme.bgImage = bgImage;
-      } catch (error) {
-        return res.status(400).json({ message: "Invalid theme JSON" });
       }
     }
 
-    // Retrieve the existing document
     const existingSite = await UserSite.findOne({ user: id });
     if (!existingSite) {
       return res.status(404).json({ message: "Site not found" });
@@ -122,7 +112,7 @@ const UserSiteController = {
       title,
       location,
       experience,
-      theme: theme || existingSite.theme,
+      theme: _.merge({}, existingSite.theme, theme),
       skills: skills ? JSON.parse(skills) : existingSite.skills,
     };
 
@@ -146,56 +136,6 @@ const UserSiteController = {
     console.log(updatedSite);
     res.json(updatedSite);
   }),
-  // update: tryCatch(async (req, res) => {
-  //   const { social, slug, title, about, skills, location, experience } =
-  //     req.body;
-
-  //   let { theme } = req.body;
-  //   const id = req.cookies["id"];
-
-  //   let avatar = null;
-  //   let bgImage = null;
-
-  //   if (req.files) {
-  //     if (req.files.avatar) {
-  //       avatar = await handleFileUpload(req.files.avatar[0], "avatar");
-  //     }
-  //     if (req.files.bgImage) {
-  //       bgImage = await handleFileUpload(req.files.bgImage[0], "backgrounds");
-  //     }
-  //   }
-
-  //   if (theme) {
-  //     theme = JSON.parse(theme);
-  //     theme.bgImage = bgImage;
-  //   }
-
-  //   let updatedValues = {};
-
-  //   const updateSite = await UserSite.findOneAndUpdate(
-  //     { user: id },
-  //     {
-  //       slug,
-  //       social: JSON.parse(social),
-  //       about,
-  //       avatar,
-  //       title,
-  //       location,
-  //       experience,
-  //       theme,
-  //       skills: JSON.parse(skills),
-  //     },
-  //     { new: true }
-  //   );
-
-  //   console.log(updateSite);
-
-  //   if (!updateSite) {
-  //     return res.status(404).json({ message: "Link not found" });
-  //   }
-
-  //   res.json(updateSite);
-  // }),
 
   addLinks: tryCatch(async (req, res) => {
     const { links } = req.body;
