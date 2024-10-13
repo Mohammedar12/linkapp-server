@@ -1,7 +1,14 @@
-const AppError = require("../helpers/AppError");
+// const AppError = require("../helpers/AppError");
+import AppError from "../helpers/AppError.mjs";
+
+const debugLog = (value) => {
+  console.log("Incoming data:", value);
+  return value;
+};
 
 const validator = (schema) => (req, res, next) => {
   const { error, value } = schema.validate(req.body, { abortEarly: false });
+  debugLog(value);
   if (error) {
     const errorMessage = error.details
       .map((detail) => detail.message)
@@ -12,4 +19,5 @@ const validator = (schema) => (req, res, next) => {
   next();
 };
 
-module.exports = validator;
+export default validator;
+// module.exports = validator;

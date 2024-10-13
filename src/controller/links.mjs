@@ -43,19 +43,22 @@ const linksController = {
     res.json(addlink);
   }),
   upadte: tryCatch(async (req, res) => {
-    const { url, title, index } = req.body;
+    const { url, title, index, display } = req.body;
+
+    const updateData = {
+      url,
+      title,
+      index,
+    };
+    if (display !== undefined) {
+      updateData.display = display;
+    }
 
     const updatedLink = await Links.findByIdAndUpdate(
       req.params.id,
-      {
-        url,
-        title,
-        display: url == "" ? false : true,
-        index: index,
-      },
+      updateData,
       { new: true }
     );
-
     if (!updatedLink) {
       return res.status(404).json({ message: "Link not found" });
     }

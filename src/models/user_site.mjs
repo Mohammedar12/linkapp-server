@@ -20,30 +20,79 @@ const ImageSchema = new Schema(
   { _id: false }
 );
 
-// const MixedItemSchema = new Schema(
-//   {
-//     itemType: {
-//       type: String,
-//       enum: ["Links", "Header"],
-//       required: true,
-//     },
-//     item: {
-//       type: Schema.Types.ObjectId,
-//       refPath: "itemType",
-//       required: true,
-//     },
-//     index: {
-//       type: Number,
-//       min: 0,
-//     },
-//     id: {
-//       type: String,
-//       unique: true,
-//       sparse: true,
-//     },
-//   },
-//   { _id: false }
-// );
+const ThemeSchema = new Schema(
+  {
+    isGradient: {
+      type: Boolean,
+    },
+    gradient: {
+      from: {
+        type: String,
+      },
+      to: {
+        type: String,
+      },
+      dir: {
+        type: String,
+      },
+    },
+    bgColor: {
+      type: String,
+    },
+    AvatarBgColor: {
+      type: String,
+    },
+    isParticles: {
+      type: Boolean,
+    },
+    isReadyTheme: {
+      type: Boolean,
+    },
+    linkStyle: {
+      isGradient: {
+        type: Boolean,
+      },
+      bgColor: {
+        type: String,
+      },
+      gradient: {
+        from: {
+          type: String,
+        },
+        to: {
+          type: String,
+        },
+        dir: {
+          type: String,
+        },
+      },
+    },
+    headerStyle: {
+      isGradient: {
+        type: Boolean,
+      },
+      bgColor: {
+        type: String,
+      },
+      gradient: {
+        from: {
+          type: String,
+        },
+        to: {
+          type: String,
+        },
+        dir: {
+          type: String,
+        },
+      },
+    },
+    bgImage: ImageSchema,
+    themeName: {
+      type: String,
+    },
+  },
+  { _id: false }
+);
 
 const UserSiteSchema = new Schema(
   {
@@ -60,10 +109,6 @@ const UserSiteSchema = new Schema(
       lowercase: true,
       trim: true,
     },
-    // items: {
-    //   type: [MixedItemSchema],
-    //   // validate: [arrayLimit, "{PATH} exceeds the limit of 50"],
-    // },
     links: [{ type: mongoose.Schema.Types.ObjectId, ref: "Links" }],
     headers: [
       {
@@ -79,54 +124,18 @@ const UserSiteSchema = new Schema(
       type: [String],
       validate: [arrayLimit, "{PATH} exceeds the limit of 20"],
     },
-    theme: {
-      isGradient: {
-        type: Boolean,
-      },
-      gradient: {
-        from: {
-          type: String,
-        },
-        to: {
-          type: String,
-        },
-        dir: {
-          type: String,
-        },
-      },
-      bgColor: {
-        type: String,
-      },
-      AvatarBgColor: {
-        type: String,
-      },
-      isParticles: {
-        type: Boolean,
-      },
-      linksBgColor: {
-        type: String,
-      },
-      HeadersBgColor: {
-        type: String,
-      },
-      linksBgStyle: {
-        type: String,
-      },
-      HeadersBgStyle: {
-        type: String,
-      },
-      bgImage: ImageSchema,
-    },
+    theme: { type: ThemeSchema, required: true },
     title: {
       type: String,
       trim: true,
       maxlength: 100,
+      required: true,
     },
     experience: {
       type: Number,
     },
     location: {
-      type: Number,
+      type: String,
     },
 
     about: {
@@ -139,6 +148,11 @@ const UserSiteSchema = new Schema(
       type: String,
       default: "user",
       enum: ["user", "admin", "moderator"],
+    },
+    isActive: {
+      type: Boolean,
+      default: false,
+      required: true,
     },
   },
   {

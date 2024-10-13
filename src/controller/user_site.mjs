@@ -1,4 +1,5 @@
 import { UserSite } from "../models/user_site.mjs";
+import { User } from "../models/user.mjs";
 import { Links } from "../models/links.mjs";
 import { Header } from "../models/header.mjs";
 import { tryCatch } from "../utils/tryCatch.mjs";
@@ -29,25 +30,43 @@ const handleFileUpload = async (file, dir) => {
 
 const UserSiteController = {
   index: tryCatch(async (req, res) => {
-    const slug = req.params.slug;
+    try {
+      const slug = req.params.slug;
 
-    const site = await UserSite.findOne({ slug }).populate("links");
-
-    if (!site) {
-      return res.json({
-        status: false,
-        message: "Sorry This Site Not Exist",
+      const site = await UserSite.findOne({ slug }).populate({
+        path: "links",
+        match: { display: true },
       });
-    }
 
-    res.json(site);
+      if (!site) {
+        return res.json({
+          status: false,
+          message: "Sorry This Site Not Exist",
+        });
+      }
+
+      console.log("qxca109");
+
+      if (!site.isActive) {
+        return res.json({
+          isActive: site.isActive,
+          message: "the site not active yet",
+        });
+      }
+
+      res.json(site);
+    } catch (error) {
+      console.error("Error in index function:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   }),
   id: tryCatch(async (req, res) => {
     const id = req.cookies["id"];
     const site = await UserSite.findOne({ user: id }).populate("links");
 
     if (!site) {
-      throw new Error("UserSite not found");
+      res.status(404).json({ error: "The site not exist yet" });
+      // throw new Error("The site not exist yet");
     }
 
     res.json(site);
@@ -55,6 +74,7 @@ const UserSiteController = {
   create: tryCatch(async (req, res) => {
     const { social, slug, title, theme, about, skills } = req.body;
     const id = req.cookies["id"];
+    const user = await User.findById({ _id: id });
 
     let avatar = null;
 
@@ -63,6 +83,7 @@ const UserSiteController = {
         avatar = await handleFileUpload(req.files.avatar[0], "avatar");
       }
     }
+    console.log(user.isVerified, "user site active user.isVerified");
 
     const newSite = new UserSite({
       user: id,
@@ -71,7 +92,8 @@ const UserSiteController = {
       about,
       avatar,
       title,
-      theme,
+      isActive: user.isVerified || false,
+      theme: JSON.parse(theme),
       skills: JSON.parse(skills),
     });
 
@@ -79,13 +101,32 @@ const UserSiteController = {
     res.json(site);
   }),
   update: tryCatch(async (req, res) => {
-    const { social, slug, title, about, skills, location, experience } =
-      req.body;
-    let theme = req.body.theme ? JSON.parse(req.body.theme) : {};
+    const {
+      social,
+      slug,
+      title,
+      about,
+      skills,
+      location,
+      experience,
+      isActive,
+    } = req.body;
     const id = req.cookies["id"];
 
     let avatar = null;
     let bgImage = null;
+    let theme = null;
+
+    // Parse theme if it exists
+    if (req.body.theme) {
+      try {
+        theme = JSON.parse(req.body.theme);
+        console.log(theme);
+      } catch (e) {
+        console.error("Error parsing theme:", e);
+        return res.status(400).json({ message: "Invalid theme JSON" });
+      }
+    }
 
     // Handle file uploads
     if (req.files) {
@@ -94,25 +135,29 @@ const UserSiteController = {
       }
       if (req.files.bgImage) {
         bgImage = await handleFileUpload(req.files.bgImage[0], "backgrounds");
-        theme.bgImage = bgImage;
+        if (theme) {
+          theme.bgImage = bgImage;
+        }
       }
     }
 
+    // Retrieve the existing document
     const existingSite = await UserSite.findOne({ user: id });
     if (!existingSite) {
       return res.status(404).json({ message: "Site not found" });
     }
 
-    // Construct the new fields object, with checks for undefined values
+    // Construct the new fields object
     const newFields = {
-      slug,
+      slug: slug || existingSite.slug,
       social: social ? JSON.parse(social) : existingSite.social,
-      about,
+      about: about || existingSite.about,
       avatar: avatar || existingSite.avatar,
-      title,
-      location,
-      experience,
-      theme: _.merge({}, existingSite.theme, theme),
+      title: title || existingSite.title,
+      location: location || existingSite.location,
+      isActive: isActive || existingSite.isActive,
+      theme: theme || existingSite.theme,
+      experience: experience || existingSite.experience,
       skills: skills ? JSON.parse(skills) : existingSite.skills,
     };
 
@@ -120,6 +165,8 @@ const UserSiteController = {
     const fieldsToUpdate = _.omitBy(newFields, (value, key) => {
       return _.isEqual(value, _.get(existingSite, key));
     });
+
+    // console.log("Fields to update:", JSON.stringify(fieldsToUpdate, null, 2));
 
     // If there are no fields to update, return the existing document
     if (_.isEmpty(fieldsToUpdate)) {
@@ -133,10 +180,8 @@ const UserSiteController = {
       { new: true }
     );
 
-    console.log(updatedSite);
     res.json(updatedSite);
   }),
-
   addLinks: tryCatch(async (req, res) => {
     const { links } = req.body;
     const id = req.cookies["id"];
@@ -150,23 +195,6 @@ const UserSiteController = {
       { new: true, useFindAndModify: false }
     );
     const site = await userSite.save();
-    res.json(site);
-  }),
-  addHeaders: tryCatch(async (req, res) => {
-    const { headers } = req.body;
-    const id = req.cookies["id"];
-    const userSite = await UserSite.findOneAndUpdate(
-      { user: id },
-      {
-        $push: {
-          items: { id: headers, itemType: "Header", item: headers, index: 0 },
-        },
-      },
-      { new: true, useFindAndModify: false }
-    );
-
-    const site = await userSite.save();
-    console.log(site);
     res.json(site);
   }),
   reorder: tryCatch(async (req, res) => {

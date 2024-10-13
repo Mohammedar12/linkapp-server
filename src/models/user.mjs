@@ -12,13 +12,32 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
+  authId: {
+    type: String,
+  },
+  authType: { type: String, enum: ["local", "google"], required: true },
   hash: {
     type: String,
-    required: true,
   },
   salt: {
     type: String,
+  },
+  tokenExpiration: {
+    type: Date,
+  },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
+  registerSteps: {
+    type: Boolean,
+    default: false,
     required: true,
+  },
+  verifyToken: {
+    type: String,
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
   },
   avatar: {
     public_id: String,

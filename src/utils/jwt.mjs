@@ -11,12 +11,16 @@ const PRIV_KEY = fs.readFileSync(__dirname + "/../private_key.pem", "utf8");
 
 const generateToken = (user) => {
   const _id = user._id;
+  const verified = user.isVerified;
+
+  console.log(verified);
 
   const expiresIn = "15m";
 
   const payload = {
     sub: _id,
     iat: Date.now(),
+    isVerified: verified,
   };
 
   const signedToken = jwt.sign(payload, PRIV_KEY, {

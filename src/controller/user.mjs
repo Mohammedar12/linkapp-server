@@ -2,9 +2,20 @@ import { User } from "../models/user.mjs";
 import { tryCatch } from "../utils/tryCatch.mjs";
 import generateToken from "../utils/jwt.mjs";
 import "dotenv";
+import crypto from "crypto";
 import client from "./../services/redis.mjs";
-
+import nodemailer from "nodemailer";
 import { genPassword, validPassword } from "../utils/password.mjs";
+
+import { fileURLToPath } from "url";
+import path from "path";
+import { sendSendTemplateMail } from "../services/mail.mjs";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+function generateVerifyToken() {
+  return crypto.randomBytes(32).toString("hex");
+}
 
 const UserController = {
   user: tryCatch(async (req, res) => {
@@ -32,11 +43,33 @@ const UserController = {
     const salt = saltHash.salt;
     const hash = saltHash.hash;
 
+    let verifyToken = generateVerifyToken();
+    const tokenExpiration = new Date(Date.now() + 15 * 60 * 1000);
+
+    let verificationLink = `http://localhost:3000/verify?verifyToken=${verifyToken}`;
+
+    // try {
+    //   await sendSendTemplateMail(
+    //     email,
+    //     "Verify Email",
+    //     path.join(__dirname, "./mail/index.html"),
+    //     {
+    //       verificationLink: verificationLink,
+    //     }
+    //   );
+    // } catch (error) {
+    //   console.error("Failed to send verification email:", error);
+    //   return res
+    //     .status(500)
+    //     .json({ message: "Failed to send verification email" });
+    // }
+
     const newUser = User({
       email: email,
       username: username,
       hash: hash,
       salt: salt,
+      authType: "local",
     });
 
     const user = await newUser.save();
@@ -56,10 +89,12 @@ const UserController = {
     });
 
     res.json({
-      email: user.email,
+      user: {
+        email: user.email,
+        userId: user._id,
+        username: user.username,
+      },
       token,
-      userId: user._id,
-      avatar: user.avatar.url,
       createdAt: user.createdAt,
     });
   }),
@@ -93,6 +128,18 @@ const UserController = {
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+    res.cookie("isVerified", user.isVerified, {
+      secure: false,
+      httpOnly: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    res.cookie("registerSteps", user.registerSteps, {
+      secure: false,
+      httpOnly: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     return res.status(200).json({
       email: user.email,
@@ -101,6 +148,276 @@ const UserController = {
       avatar: user.avatar.url,
       createdAt: user.createdAt,
     });
+  }),
+  googleAuth: tryCatch(async (req, res) => {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: "User Not Exists !" });
+    }
+
+    // Remove password check for Google Auth
+    const token = generateToken(user);
+
+    res.cookie("jwt", token, {
+      secure: false,
+      httpOnly: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    res.cookie("id", user._id, {
+      secure: false,
+      httpOnly: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      email: user.email,
+      token,
+      userId: user._id,
+      avatar: user.avatar.url,
+      createdAt: user.createdAt,
+    });
+  }),
+  update: tryCatch(async (req, res) => {
+    const { registerSteps } = req.body;
+
+    const id = req.cookies["id"];
+
+    console.log(registerSteps, "registerSteps");
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      { registerSteps: registerSteps },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(401).json({ message: "User Not Exists !" });
+    }
+    console.log(user.registerSteps, "user.registerSteps");
+
+    res.cookie("registerSteps", registerSteps, {
+      secure: false,
+      httpOnly: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      user,
+    });
+  }),
+  verifyUser: tryCatch(async (req, res) => {
+    const { verifyToken } = req.query;
+    const id = req.cookies["id"];
+
+    console.log("User ID from cookie:", id);
+
+    if (!verifyToken) {
+      return res.status(400).json({ message: "Missing verification token" });
+    }
+
+    if (!id) {
+      return res.status(400).json({
+        message: "User ID not found in cookies. Please log in again.",
+      });
+    }
+
+    let user;
+    try {
+      user = await User.findById(id);
+    } catch (error) {
+      console.error("Error finding user:", error);
+      return res.status(500).json({ message: "Error finding user" });
+    }
+
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    if (user.isVerified) {
+      return res
+        .status(200)
+        .json({ message: "User is already verified", alreadyVerified: true });
+    }
+
+    if (user.verifyToken !== verifyToken) {
+      return res.status(401).json({ message: "Invalid verification token" });
+    }
+
+    // Compare the current time with the token expiration date
+    const currentTime = new Date();
+    if (currentTime > user.tokenExpiration) {
+      return res
+        .status(401)
+        .json({ message: "Token has expired!", expired: true });
+    }
+
+    try {
+      const updatedUser = await User.findByIdAndUpdate(
+        id,
+        {
+          $set: { isVerified: true },
+          $unset: { verifyToken: "", tokenExpiration: "" },
+        },
+        { new: true }
+      );
+
+      const token = generateToken(user);
+
+      res.cookie("jwt", token, {
+        secure: false,
+        httpOnly: true,
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      res.cookie("isVerified", user.isVerified, {
+        secure: false,
+        httpOnly: true,
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      return res.status(200).json({
+        message: "User verified successfully",
+        user: {
+          id: updatedUser._id,
+          token: token,
+          email: updatedUser.email,
+          isVerified: updatedUser.isVerified,
+        },
+      });
+    } catch (error) {
+      console.error("Error updating user:", error);
+      return res.status(500).json({ message: "Error updating user" });
+    }
+  }),
+  sendVerifyToken: tryCatch(async (req, res) => {
+    const id = req.cookies["id"];
+
+    const user = await User.findById({ _id: id });
+    const email = user.email;
+    if (!user) {
+      return res
+        .status(401)
+        .json({ message: "User Not Exists !", Invalid: true });
+    }
+
+    let verifyToken = generateVerifyToken();
+    const tokenExpiration = new Date(Date.now() + 15 * 60 * 1000);
+
+    let verificationLink = `http://localhost:3000/verify?verifyToken=${verifyToken}`;
+
+    try {
+      await sendSendTemplateMail(
+        email,
+        "Verify Email",
+        path.join(__dirname, "./mail/verify-email.html"),
+        {
+          verificationLink: verificationLink,
+        }
+      );
+    } catch (error) {
+      console.error("Failed to send verification email:", error);
+      return res
+        .status(500)
+        .json({ message: "Failed to send verification email" });
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: id },
+      {
+        $set: { verifyToken: verifyToken, tokenExpiration: tokenExpiration },
+      },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      message: "verification token has been sent to your email",
+      user: {
+        id: updatedUser._id,
+        email: updatedUser.email,
+        isVerified: updatedUser.isVerified,
+      },
+      updatedUser,
+    });
+  }),
+  forgotPassword: tryCatch(async (req, res) => {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetTokenExpiration = Date.now() + 3600000; // 1 hour from now
+
+    // Save reset token and expiration to user document
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = resetTokenExpiration;
+    await user.save();
+
+    // Create reset URL
+    const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+
+    // Send email
+    try {
+      await sendSendTemplateMail(
+        email,
+        "Password Reset",
+        path.join(__dirname, "./mail/reset-password.html"),
+        {
+          resetUrl: resetUrl,
+        }
+      );
+
+      res.status(200).json({ message: "Password reset email sent" });
+    } catch (error) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save();
+
+      console.error("Failed to send password reset email:", error);
+      return res
+        .status(500)
+        .json({ message: "Failed to send password reset email" });
+    }
+  }),
+
+  resetPassword: tryCatch(async (req, res) => {
+    const { token, password } = req.body;
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired reset token" });
+    }
+
+    // Set new password
+    const saltHash = genPassword(password);
+    user.hash = saltHash.hash;
+    user.salt = saltHash.salt;
+
+    // Clear reset token fields
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+
+    res.status(200).json({ message: "Password has been reset successfully" });
   }),
   logout: tryCatch(async (req, res) => {
     const tokenId = req.cookies["jwt"].token;
@@ -126,6 +443,8 @@ const UserController = {
     }
     res.clearCookie("jwt");
     res.clearCookie("id");
+    res.clearCookie("registerSteps");
+    res.clearCookie("isVerified");
     res.json({ message: "Good Bye!" });
   }),
 };
