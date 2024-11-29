@@ -8,6 +8,7 @@ import path from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PRIV_KEY = fs.readFileSync(__dirname + "/../private_key.pem", "utf8");
+// const PRIV_KEY = process.env.PRIVATE_KEY;
 
 const generateToken = (user) => {
   const _id = user._id;

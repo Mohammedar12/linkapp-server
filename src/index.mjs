@@ -45,6 +45,6 @@ app.use("/headers", headers);
 app.use(errorHandler);
 
 app.listen(process.env.PORT || 5000, () => {
-  console.log("works !");
   dbConnect();
+  console.log("works !");
 });

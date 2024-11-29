@@ -1,7 +1,9 @@
 import { createClient } from "redis";
 
-const client = createClient();
-
+const client = createClient({
+  url: "redis://redis:6379" || "127.0.0.1:6379",
+});
+// const client = createClient();
 client.on("error", (error) => {
   console.error("Redis Error: ", error);
 });

@@ -11,6 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PUB_KEY = fs.readFileSync(__dirname + "/../public_key.pem", "utf8");
+// const PUB_KEY = process.env.PUBLIC_KEY;
 
 // JWT Configuration
 let jwtOpts = {};
