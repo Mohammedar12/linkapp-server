@@ -9,8 +9,8 @@ import cacheMiddleware from "../utils/cacheMiddleware.mjs";
 import limiter from "../utils/limiter.mjs";
 
 const router = Router();
-router.get("/site/:slug", UserSiteController.index);
-router.get("/site", UserSiteController.id);
+router.get("/slug/:slug", UserSiteController.index);
+router.get("/site/id", UserSiteController.id);
 router.post(
   "/create",
   validator(createUserSiteSchema),

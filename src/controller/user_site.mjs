@@ -40,12 +40,10 @@ const UserSiteController = {
 
       if (!site) {
         return res.json({
-          status: false,
+          isActive: false,
           message: "Sorry This Site Not Exist",
         });
       }
-
-      console.log("qxca109");
 
       if (!site.isActive) {
         return res.json({
@@ -65,7 +63,7 @@ const UserSiteController = {
     const site = await UserSite.findOne({ user: id }).populate("links");
 
     if (!site) {
-      res.status(404).json({ error: "The site not exist yet" });
+      res.status(404).json({ error: "The site not exist" });
       // throw new Error("The site not exist yet");
     }
 
@@ -84,10 +82,10 @@ const UserSiteController = {
       }
     }
     console.log(user.isVerified, "user site active user.isVerified");
-
+    const formattedSlug = slug?.replace(/\s+/g, "-").toLowerCase();
     const newSite = new UserSite({
       user: id,
-      slug,
+      slug: formattedSlug || slug,
       social: JSON.parse(social),
       about,
       avatar,
@@ -147,9 +145,11 @@ const UserSiteController = {
       return res.status(404).json({ message: "Site not found" });
     }
 
+    const formattedSlug = slug?.replace(/\s+/g, "-").toLowerCase();
+
     // Construct the new fields object
     const newFields = {
-      slug: slug || existingSite.slug,
+      slug: formattedSlug || slug || existingSite.slug,
       social: social ? JSON.parse(social) : existingSite.social,
       about: about || existingSite.about,
       avatar: avatar || existingSite.avatar,
@@ -179,6 +179,7 @@ const UserSiteController = {
       { $set: fieldsToUpdate },
       { new: true }
     );
+    await User.findOneAndUpdate({ _id: id }, { username: fieldsToUpdate.slug });
 
     res.json(updatedSite);
   }),
