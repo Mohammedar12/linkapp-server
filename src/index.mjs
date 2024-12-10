@@ -1,10 +1,10 @@
 import express from "express";
 import cors from "cors";
 import passport from "passport";
-// const http = require("http");
+import { createServer } from "http";
+import { Server } from "socket.io";
 import dbConnect from "./config/db.mjs";
 import "./auth/passport.mjs";
-// import "./auth/googleAuth.mjs";
 import user from "./route/user.mjs";
 import userSite from "./route/user_site.mjs";
 import links from "./route/links.mjs";
@@ -16,6 +16,76 @@ import "./services/redis.mjs";
 import limiter from "./utils/limiter.mjs";
 
 const app = express();
+const server = createServer(app);
+
+// Socket.IO setup with CORS
+const io = new Server(server, {
+  cors: {
+    origin: [
+      "http://localhost:3000",
+      "http://192.168.100.32:3000",
+      "https://j928fhtn-3000.euw.devtunnels.ms",
+    ],
+    credentials: true,
+  },
+});
+
+// Store user socket connections
+const userSockets = new Map();
+
+// Socket.IO connection handler
+io.on("connection", (socket) => {
+  // Add more comprehensive logging
+  console.log(
+    `New client connected: ${socket.id} at ${new Date().toISOString()}`
+  );
+
+  socket.on("authenticate", (userId) => {
+    try {
+      // Validate userId
+      if (!userId) {
+        return socket.emit("authentication_error", {
+          message: "Invalid User ID",
+        });
+      }
+
+      console.log(`User authenticated: ${userId}`);
+      userSockets.set(userId, socket.id);
+      socket.join(`user_${userId}`);
+
+      // Send more detailed authentication response
+      socket.emit("authenticated", {
+        status: "connected",
+        socketId: socket.id,
+        timestamp: Date.now(),
+      });
+    } catch (error) {
+      console.error(`Authentication error for user ${userId}:`, error);
+      socket.emit("authentication_error", { message: "Authentication failed" });
+    }
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log(`Client disconnected: ${socket.id} Reason: ${reason}`);
+
+    // More robust socket removal
+    for (const [userId, socketId] of userSockets.entries()) {
+      if (socketId === socket.id) {
+        userSockets.delete(userId);
+        break;
+      }
+    }
+  });
+
+  // Add ping mechanism to detect connection health
+  socket.on("ping", () => {
+    socket.emit("pong");
+  });
+});
+
+// Make Socket.IO instance available to routes
+app.set("io", io);
+app.set("userSockets", userSockets);
 
 const corsOptions = {
   origin: [
@@ -39,7 +109,16 @@ app.use("/headers", headers);
 
 app.use(errorHandler);
 
-app.listen(process.env.PORT || 5000, () => {
+server.listen(process.env.PORT || 5000, () => {
   dbConnect();
-  console.log("works !");
+  console.log("Server running with Socket.IO support!");
 });
+
+// Utility functions for routes
+export const emitToUser = (io, userId, event, data) => {
+  io.to(`user_${userId}`).emit(event, data);
+};
+
+export const broadcastToAll = (io, event, data) => {
+  io.emit(event, data);
+};

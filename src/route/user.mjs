@@ -35,12 +35,8 @@ router.get(
 
   (req, res) => {
     console.log("Successfully authenticated with Google");
-    console.log(req);
 
     const { user, token } = req.user;
-
-    console.log(token);
-    console.log(user);
 
     res.cookie("jwt", token, {
       secure: false, // Set to true if using HTTPS
@@ -64,7 +60,10 @@ router.get(
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.redirect("http://localhost:3000/admin");
+    const redirectUrl = user.registerSteps
+      ? "/admin?authenticated=true"
+      : "/signup/startup?authenticated=true";
+    res.redirect(`http://localhost:3000${redirectUrl}`);
   }
 );
 router.post("/login", validator(loginSchema), UserController.login);

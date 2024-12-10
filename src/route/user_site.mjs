@@ -10,7 +10,7 @@ import limiter from "../utils/limiter.mjs";
 
 const router = Router();
 router.get("/slug/:slug", UserSiteController.index);
-router.get("/site/id", UserSiteController.id);
+router.get("/site/:id", UserSiteController.id);
 router.post(
   "/create",
   validator(createUserSiteSchema),
@@ -18,7 +18,8 @@ router.post(
   UserSiteController.create
 );
 router.put("/update", uploadFields, UserSiteController.update);
-router.put("/addLinks", UserSiteController.addLinks);
+router.post("/addLinks", UserSiteController.addLinks);
+router.put("/editLinks/:id", UserSiteController.editLinks);
 
 router.put("/reorder", limiter, UserSiteController.reorder);
 router.delete("/remove", UserSiteController.remove);

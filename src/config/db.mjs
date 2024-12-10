@@ -2,14 +2,16 @@ import dotenv from "dotenv";
 dotenv.config();
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/a";
+const isDevelopment = process.env.NODE_ENV === "production";
+
+const MONGODB_URI = isDevelopment
+  ? process.env.MONGODB_URI
+  : "mongodb://ali:123@localhost:27017/linkapp?authSource=admin";
 
 const dbConnect = async () => {
   try {
     console.log(`Attempting to connect to MongoDB at: ${MONGODB_URI}`);
-    await mongoose.connect(
-      "mongodb://ali:123@mongodb:27017/linkapp?authSource=admin"
-    );
+    await mongoose.connect(MONGODB_URI);
     console.log("MongoDB connected successfully");
   } catch (error) {
     console.error("MongoDB connection error:", error);
