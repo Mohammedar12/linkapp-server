@@ -40,12 +40,10 @@ const UserSiteController = {
 
       if (!site) {
         return res.json({
-          status: false,
+          isActive: false,
           message: "Sorry This Site Not Exist",
         });
       }
-
-      console.log("qxca109");
 
       if (!site.isActive) {
         return res.json({
@@ -65,7 +63,7 @@ const UserSiteController = {
     const site = await UserSite.findOne({ user: id }).populate("links");
 
     if (!site) {
-      res.status(404).json({ error: "The site not exist yet" });
+      res.status(404).json({ error: "The site not exist" });
       // throw new Error("The site not exist yet");
     }
 
@@ -83,11 +81,11 @@ const UserSiteController = {
         avatar = await handleFileUpload(req.files.avatar[0], "avatar");
       }
     }
-    console.log(user.isVerified, "user site active user.isVerified");
 
+    const formattedSlug = slug?.replace(/\s+/g, "-").toLowerCase();
     const newSite = new UserSite({
       user: id,
-      slug,
+      slug: formattedSlug || slug,
       social: JSON.parse(social),
       about,
       avatar,
@@ -96,6 +94,8 @@ const UserSiteController = {
       theme: JSON.parse(theme),
       skills: JSON.parse(skills),
     });
+
+    await User.findOneAndUpdate({ _id: id }, { username: newSite.slug });
 
     const site = await newSite.save();
     res.json(site);
@@ -112,7 +112,7 @@ const UserSiteController = {
       isActive,
     } = req.body;
     const id = req.cookies["id"];
-
+    const io = req.app.get("io");
     let avatar = null;
     let bgImage = null;
     let theme = null;
@@ -147,9 +147,11 @@ const UserSiteController = {
       return res.status(404).json({ message: "Site not found" });
     }
 
+    const formattedSlug = slug?.replace(/\s+/g, "-").toLowerCase();
+
     // Construct the new fields object
     const newFields = {
-      slug: slug || existingSite.slug,
+      slug: formattedSlug || slug || existingSite.slug,
       social: social ? JSON.parse(social) : existingSite.social,
       about: about || existingSite.about,
       avatar: avatar || existingSite.avatar,
@@ -178,27 +180,120 @@ const UserSiteController = {
       { user: id },
       { $set: fieldsToUpdate },
       { new: true }
-    );
+    ).populate({
+      path: "links",
+      match: { display: true },
+    });
+
+    await User.findOneAndUpdate({ _id: id }, { username: fieldsToUpdate.slug });
+
+    io.to(`user_${id}`).emit("site:update", {
+      type: "SITE_UPDATE",
+      payload: {
+        siteId: updatedSite._id,
+        updates: fieldsToUpdate,
+        site: updatedSite,
+      },
+    });
 
     res.json(updatedSite);
   }),
   addLinks: tryCatch(async (req, res) => {
-    const { links } = req.body;
+    const { url, title, type } = req.body;
     const id = req.cookies["id"];
+    const io = req.app.get("io");
+    const site = await UserSite.findOne({ user: id });
+
+    // Extract domain from the url
+
+    const extractDomain = (url) => {
+      const pattern = /(?:https?:\/\/)?(?:www\.)?([^\/.:]+)/;
+      const match = url.match(pattern);
+      return match ? match[1] : null;
+    };
+
+    const domain = extractDomain(url);
+
+    // Create new Link : header or url
+
+    const newLink = await Links.create({
+      user: id,
+      url: type !== "Header" && url,
+      title: title || domain,
+      type: type,
+      display: title == "" ? false : true,
+    });
+    // Add new Link to user site
     const userSite = await UserSite.findOneAndUpdate(
       { user: id },
       {
         $push: {
-          links: links,
+          links: newLink,
         },
       },
       { new: true, useFindAndModify: false }
+    ).populate({
+      path: "links",
+      match: { display: true },
+    });
+    await newLink.save();
+    await userSite.save();
+
+    // Use ws to real-time data
+    io.to(`user_${id}`).emit("site:update", {
+      type: "SITE_UPDATE",
+      payload: {
+        siteId: id,
+        updates: userSite.links,
+        site: userSite,
+      },
+    });
+
+    res.json(newLink);
+  }),
+  editLinks: tryCatch(async (req, res) => {
+    const { url, title, index, display } = req.body;
+    const id = req.cookies["id"];
+    const io = req.app.get("io");
+
+    const updateData = {
+      url,
+      title,
+      index,
+    };
+    if (display !== undefined) {
+      updateData.display = display;
+    }
+
+    const updatedLink = await Links.findOneAndUpdate(
+      { _id: req.params.id },
+      updateData,
+      { new: true }
     );
-    const site = await userSite.save();
-    res.json(site);
+    if (!updatedLink) {
+      return res.status(404).json({ message: "Link not found" });
+    }
+
+    const site = await UserSite.findOne({ user: id }).populate({
+      path: "links",
+      match: { display: true },
+    });
+
+    // Use ws to real-time data
+    io.to(`user_${id}`).emit("site:update", {
+      type: "SITE_UPDATE",
+      payload: {
+        siteId: id,
+        updates: site.links,
+        site: site,
+      },
+    });
+
+    res.json(updatedLink);
   }),
   reorder: tryCatch(async (req, res) => {
     const id = req.cookies["id"];
+    const io = req.app.get("io");
     const { links } = req.body;
 
     console.log("Received links:", links);
@@ -229,6 +324,13 @@ const UserSiteController = {
         "links"
       );
 
+      io.to(`user_${id}`).emit("site:update", {
+        type: "SITE_UPDATE",
+        payload: {
+          reorder: newLinkOrder,
+          site: updatedSite,
+        },
+      });
       res.json({
         success: true,
         message: "Order updated successfully",
@@ -246,12 +348,25 @@ const UserSiteController = {
   remove: tryCatch(async (req, res) => {
     const user = req.cookies["id"];
     const { itemId } = req.body;
+    const io = req.app.get("io");
 
     const userSite = await UserSite.findOneAndUpdate(
       { user },
-      { $pull: { links: itemId } }, // Changed from { _id: itemId } to itemId
+      { $pull: { links: itemId } },
       { new: true }
-    );
+    ).populate({
+      path: "links",
+      match: { display: true },
+    });
+
+    io.to(`user_${user}`).emit("site:update", {
+      type: "SITE_UPDATE",
+      payload: {
+        item: itemId,
+        removed: itemId,
+        site: userSite,
+      },
+    });
 
     if (!userSite) {
       return res.status(404).json({ message: "Item not found" });

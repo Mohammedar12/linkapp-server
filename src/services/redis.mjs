@@ -1,7 +1,13 @@
 import { createClient } from "redis";
 
-const client = createClient();
+const REDIS_URL = process.env.REDIS_URL;
 
+const isDevelopment = process.env.NODE_ENV === "production";
+
+const client = createClient({
+  url: isDevelopment ? REDIS_URL : "redis://127.0.0.1:6379",
+});
+// const client = createClient();
 client.on("error", (error) => {
   console.error("Redis Error: ", error);
 });

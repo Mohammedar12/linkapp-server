@@ -29,6 +29,7 @@ const UserController = {
 
     res.json(user);
   }),
+
   signUp: tryCatch(async (req, res) => {
     const { email, password, username, role, avatar } = req.body;
 
@@ -187,8 +188,6 @@ const UserController = {
 
     const id = req.cookies["id"];
 
-    console.log(registerSteps, "registerSteps");
-
     const user = await User.findByIdAndUpdate(
       id,
       { registerSteps: registerSteps },
@@ -198,7 +197,6 @@ const UserController = {
     if (!user) {
       return res.status(401).json({ message: "User Not Exists !" });
     }
-    console.log(user.registerSteps, "user.registerSteps");
 
     res.cookie("registerSteps", registerSteps, {
       secure: false,
@@ -391,7 +389,6 @@ const UserController = {
         .json({ message: "Failed to send password reset email" });
     }
   }),
-
   resetPassword: tryCatch(async (req, res) => {
     const { token, password } = req.body;
 

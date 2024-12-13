@@ -62,6 +62,8 @@ export const createUserSiteSchema = Joi.object({
     .lowercase()
     .trim(),
   title: Joi.string().trim().max(100),
+  experience: Joi.number().max(2),
+  location: Joi.string().max(100),
   theme: Joi.alternatives().try(Joi.string(), Joi.object()),
   about: Joi.string().trim().max(500),
   skills: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())),

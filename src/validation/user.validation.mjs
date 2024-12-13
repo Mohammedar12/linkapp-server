@@ -25,7 +25,10 @@ export const loginSchema = Joi.object({
 // Update user validation schema
 export const updateUserSchema = Joi.object({
   email: Joi.string().email(),
-  username: Joi.string().alphanum().min(3).max(30),
+  username: Joi.string()
+    .regex(/^[a-zA-Z0-9-_]+$/)
+    .lowercase()
+    .trim(),
   password: Joi.string().min(8),
   registerSteps: Joi.boolean(),
   isVerified: Joi.boolean(),

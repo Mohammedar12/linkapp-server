@@ -44,7 +44,8 @@ const linksController = {
   }),
   upadte: tryCatch(async (req, res) => {
     const { url, title, index, display } = req.body;
-
+    const id = req.cookies["id"];
+    const io = req.app.get("io");
     const updateData = {
       url,
       title,

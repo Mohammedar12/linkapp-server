@@ -5,9 +5,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const PRIV_KEY = fs.readFileSync(__dirname + "/../private_key.pem", "utf8");
+const { privateKey } = JSON.parse(process.env.PRIVATE_KEY);
 
 const generateToken = (user) => {
   const _id = user._id;
@@ -23,7 +21,7 @@ const generateToken = (user) => {
     isVerified: verified,
   };
 
-  const signedToken = jwt.sign(payload, PRIV_KEY, {
+  const signedToken = jwt.sign(payload, privateKey, {
     expiresIn: expiresIn,
     algorithm: "RS256",
   });

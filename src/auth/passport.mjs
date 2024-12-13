@@ -7,11 +7,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 import generateToken from "../utils/jwt.mjs";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const PUB_KEY = fs.readFileSync(__dirname + "/../public_key.pem", "utf8");
-
+const { publicKey } = JSON.parse(process.env.PUBLIC_KEY);
 // JWT Configuration
 let jwtOpts = {};
 let cookieExtractor = function (req) {
@@ -23,7 +19,7 @@ let cookieExtractor = function (req) {
 };
 
 jwtOpts.jwtFromRequest = cookieExtractor;
-jwtOpts.secretOrKey = PUB_KEY;
+jwtOpts.secretOrKey = publicKey;
 jwtOpts.algorithms = ["RS256"];
 
 const verifyJwt = async (jwt_payload, done) => {
@@ -42,9 +38,8 @@ const verifyJwt = async (jwt_payload, done) => {
 };
 
 const googleOpts = {
-  clientID:
-    "557623506020-l7ms0lnporos59k0h2osceh23gbub3tj.apps.googleusercontent.com",
-  clientSecret: "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",
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_SECRET,
   callbackURL: "/auth/google/callback",
 };
 
