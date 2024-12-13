@@ -7,7 +7,6 @@ const isDevelopment = process.env.NODE_ENV === "production";
 const MONGODB_URI = isDevelopment
   ? process.env.MONGODB_URI
   : "mongodb://ali:123@localhost:27017/linkapp?authSource=admin";
-  : "mongodb://127.0.0.1:27017/linkapp?authSource=admin";
 
 const dbConnect = async () => {
   try {
