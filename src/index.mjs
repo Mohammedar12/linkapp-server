@@ -21,11 +21,7 @@ const server = createServer(app);
 // Socket.IO setup with CORS
 const io = new Server(server, {
   cors: {
-    origin: [
-      "http://localhost:3000",
-      "http://192.168.100.32:3000",
-      "https://j928fhtn-3000.euw.devtunnels.ms",
-    ],
+    origin: [process.env.ALLOWED_ORIGIN],
     credentials: true,
   },
 });
@@ -88,11 +84,7 @@ app.set("io", io);
 app.set("userSockets", userSockets);
 
 const corsOptions = {
-  origin: [
-    "http://localhost:3000",
-    "http://192.168.100.32:3000",
-    "https://j928fhtn-3000.euw.devtunnels.ms",
-  ],
+  origin: [process.env.ALLOWED_ORIGIN],
   credentials: true,
 };
 
