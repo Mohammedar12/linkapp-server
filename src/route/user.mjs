@@ -39,22 +39,22 @@ router.get(
     const { user, token } = req.user;
 
     res.cookie("jwt", token, {
-      secure: false, // Set to true if using HTTPS
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
     });
 
     res.cookie("registerSteps", user.registerSteps, {
-      secure: false, // Set to true if using HTTPS
+      secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
       httpOnly: true,
     });
 
     res.cookie("isVerified", user.isVerified, {
-      secure: false, // Set to true if using HTTPS
+      secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
       httpOnly: true,
     });
 
     res.cookie("id", user._id, {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,

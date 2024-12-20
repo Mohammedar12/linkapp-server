@@ -49,22 +49,6 @@ const UserController = {
 
     let verificationLink = `${process.env.ALLOWED_ORIGIN}/verify?verifyToken=${verifyToken}`;
 
-    // try {
-    //   await sendSendTemplateMail(
-    //     email,
-    //     "Verify Email",
-    //     path.join(__dirname, "./mail/index.html"),
-    //     {
-    //       verificationLink: verificationLink,
-    //     }
-    //   );
-    // } catch (error) {
-    //   console.error("Failed to send verification email:", error);
-    //   return res
-    //     .status(500)
-    //     .json({ message: "Failed to send verification email" });
-    // }
-
     const newUser = User({
       email: email,
       username: username,
@@ -80,12 +64,12 @@ const UserController = {
 
     // Set the JWT token in a cookie
     res.cookie("jwt", token, {
-      secure: false, // Set to true if using HTTPS
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
     });
 
     res.cookie("id", user._id, {
-      secure: false, // Set to true if using HTTPS
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
     });
 
@@ -118,25 +102,25 @@ const UserController = {
     const token = generateToken(user);
 
     res.cookie("jwt", token, {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie("id", user._id, {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie("isVerified", user.isVerified, {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie("registerSteps", user.registerSteps, {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -163,13 +147,13 @@ const UserController = {
     const token = generateToken(user);
 
     res.cookie("jwt", token, {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie("id", user._id, {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -199,7 +183,7 @@ const UserController = {
     }
 
     res.cookie("registerSteps", registerSteps, {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -268,14 +252,14 @@ const UserController = {
       const token = generateToken(user);
 
       res.cookie("jwt", token, {
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
         httpOnly: true,
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       res.cookie("isVerified", user.isVerified, {
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
         httpOnly: true,
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
