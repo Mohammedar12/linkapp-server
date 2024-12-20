@@ -60,8 +60,12 @@ const UserSiteController = {
   }),
   id: tryCatch(async (req, res) => {
     const id = req.cookies["id"];
+    const jwt = req.cookies["authenticated"];
     const site = await UserSite.findOne({ user: id }).populate("links");
 
+    if (jwt) {
+      console.log(jwt, "i'm jwt");
+    }
     if (!site) {
       res.status(404).json({ error: "The site not exist" });
       // throw new Error("The site not exist yet");

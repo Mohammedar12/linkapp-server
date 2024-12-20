@@ -61,9 +61,9 @@ router.get(
     });
 
     const redirectUrl = user.registerSteps
-      ? "/admin?authenticated=true"
-      : "/signup/startup?authenticated=true";
-    res.redirect(`http://localhost:3000${redirectUrl}`);
+      ? "admin?authenticated=true"
+      : "signup/startup?authenticated=true";
+    res.redirect(`${process.env.ALLOWED_ORIGIN}/${redirectUrl}`);
   }
 );
 router.post("/login", validator(loginSchema), UserController.login);

@@ -47,7 +47,7 @@ const UserController = {
     let verifyToken = generateVerifyToken();
     const tokenExpiration = new Date(Date.now() + 15 * 60 * 1000);
 
-    let verificationLink = `http://localhost:3000/verify?verifyToken=${verifyToken}`;
+    let verificationLink = `${process.env.ALLOWED_ORIGIN}/verify?verifyToken=${verifyToken}`;
 
     // try {
     //   await sendSendTemplateMail(
@@ -309,7 +309,7 @@ const UserController = {
     let verifyToken = generateVerifyToken();
     const tokenExpiration = new Date(Date.now() + 15 * 60 * 1000);
 
-    let verificationLink = `http://localhost:3000/verify?verifyToken=${verifyToken}`;
+    let verificationLink = `${process.env.ALLOWED_ORIGIN}/verify?verifyToken=${verifyToken}`;
 
     try {
       await sendSendTemplateMail(
@@ -364,7 +364,7 @@ const UserController = {
     await user.save();
 
     // Create reset URL
-    const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.ALLOWED_ORIGIN}/reset-password?token=${resetToken}`;
 
     // Send email
     try {
