@@ -65,11 +65,13 @@ const UserController = {
     // Set the JWT token in a cookie
     res.cookie("jwt", token, {
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       httpOnly: true,
     });
 
     res.cookie("id", user._id, {
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       httpOnly: true,
     });
 
@@ -103,26 +105,34 @@ const UserController = {
 
     res.cookie("jwt", token, {
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       httpOnly: true,
-      sameSite: "strict",
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie("id", user._id, {
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       httpOnly: true,
-      sameSite: "strict",
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie("isVerified", user.isVerified, {
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       httpOnly: true,
-      sameSite: "strict",
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie("registerSteps", user.registerSteps, {
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       httpOnly: true,
-      sameSite: "strict",
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -148,14 +158,18 @@ const UserController = {
 
     res.cookie("jwt", token, {
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       httpOnly: true,
-      sameSite: "strict",
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie("id", user._id, {
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       httpOnly: true,
-      sameSite: "strict",
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -184,8 +198,10 @@ const UserController = {
 
     res.cookie("registerSteps", registerSteps, {
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       httpOnly: true,
-      sameSite: "strict",
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -253,15 +269,21 @@ const UserController = {
 
       res.cookie("jwt", token, {
         secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         httpOnly: true,
-        sameSite: "strict",
+
+        domain:
+          process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       res.cookie("isVerified", user.isVerified, {
         secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         httpOnly: true,
-        sameSite: "strict",
+
+        domain:
+          process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 

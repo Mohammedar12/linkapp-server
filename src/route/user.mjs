@@ -40,23 +40,34 @@ router.get(
 
     res.cookie("jwt", token, {
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       httpOnly: true,
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
     });
 
     res.cookie("registerSteps", user.registerSteps, {
-      secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // Set to true if using HTTPS
       httpOnly: true,
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
     });
 
     res.cookie("isVerified", user.isVerified, {
-      secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // Set to true if using HTTPS
       httpOnly: true,
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
     });
 
     res.cookie("id", user._id, {
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       httpOnly: true,
-      sameSite: "strict",
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
