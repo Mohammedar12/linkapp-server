@@ -108,7 +108,7 @@ const UserController = {
       sameSite: "lax",
       httpOnly: true,
       domain:
-        process.env.NODE_ENV === "production" ? "api.waslsa.com" : "localhost",
+        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie("id", user._id, {
@@ -116,7 +116,7 @@ const UserController = {
       sameSite: "lax",
       httpOnly: true,
       domain:
-        process.env.NODE_ENV === "production" ? "api.waslsa.com" : "localhost",
+        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie("isVerified", user.isVerified, {
@@ -124,7 +124,7 @@ const UserController = {
       sameSite: "lax",
       httpOnly: true,
       domain:
-        process.env.NODE_ENV === "production" ? "api.waslsa.com" : "localhost",
+        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie("registerSteps", user.registerSteps, {
@@ -132,7 +132,7 @@ const UserController = {
       sameSite: "lax",
       httpOnly: true,
       domain:
-        process.env.NODE_ENV === "production" ? "api.waslsa.com" : "localhost",
+        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -161,7 +161,7 @@ const UserController = {
       sameSite: "lax",
       httpOnly: true,
       domain:
-        process.env.NODE_ENV === "production" ? "api.waslsa.com" : "localhost",
+        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie("id", user._id, {
@@ -169,7 +169,7 @@ const UserController = {
       sameSite: "lax",
       httpOnly: true,
       domain:
-        process.env.NODE_ENV === "production" ? "api.waslsa.com" : "localhost",
+        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -201,7 +201,7 @@ const UserController = {
       sameSite: "lax",
       httpOnly: true,
       domain:
-        process.env.NODE_ENV === "production" ? "api.waslsa.com" : "localhost",
+        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -273,9 +273,7 @@ const UserController = {
         httpOnly: true,
 
         domain:
-          process.env.NODE_ENV === "production"
-            ? "api.waslsa.com"
-            : "localhost",
+          process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
@@ -285,9 +283,7 @@ const UserController = {
         httpOnly: true,
 
         domain:
-          process.env.NODE_ENV === "production"
-            ? "api.waslsa.com"
-            : "localhost",
+          process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
