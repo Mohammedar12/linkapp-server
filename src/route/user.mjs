@@ -43,7 +43,7 @@ router.get(
       sameSite: "lax",
       httpOnly: true,
       domain:
-        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
+        process.env.NODE_ENV === "production" ? "api.waslsa.com" : "localhost",
     });
 
     res.cookie("registerSteps", user.registerSteps, {
@@ -51,7 +51,7 @@ router.get(
       sameSite: "lax", // Set to true if using HTTPS
       httpOnly: true,
       domain:
-        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
+        process.env.NODE_ENV === "production" ? "api.waslsa.com" : "localhost",
     });
 
     res.cookie("isVerified", user.isVerified, {
@@ -59,7 +59,7 @@ router.get(
       sameSite: "lax", // Set to true if using HTTPS
       httpOnly: true,
       domain:
-        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
+        process.env.NODE_ENV === "production" ? "api.waslsa.com" : "localhost",
     });
 
     res.cookie("id", user._id, {
@@ -67,7 +67,7 @@ router.get(
       sameSite: "lax",
       httpOnly: true,
       domain:
-        process.env.NODE_ENV === "production" ? ".waslas.com" : "localhost",
+        process.env.NODE_ENV === "production" ? "api.waslsa.com" : "localhost",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
