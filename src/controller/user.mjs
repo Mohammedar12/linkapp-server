@@ -145,16 +145,9 @@ const UserController = {
     });
   }),
   googleAuth: tryCatch(async (req, res) => {
-    const { email } = req.body;
+    console.log("Successfully authenticated with Google");
 
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(401).json({ message: "User Not Exists !" });
-    }
-
-    // Remove password check for Google Auth
-    const token = generateToken(user);
+    const { user, token } = req.user;
 
     res.cookie("jwt", token, {
       secure: process.env.NODE_ENV === "production",
@@ -162,8 +155,24 @@ const UserController = {
       httpOnly: true,
       domain:
         process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+
+    res.cookie("registerSteps", user.registerSteps, {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // Set to true if using HTTPS
+      httpOnly: true,
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
+    });
+
+    res.cookie("isVerified", user.isVerified, {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // Set to true if using HTTPS
+      httpOnly: true,
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
+    });
+
     res.cookie("id", user._id, {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -173,13 +182,10 @@ const UserController = {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return res.status(200).json({
-      email: user.email,
-      token,
-      userId: user._id,
-      avatar: user.avatar.url,
-      createdAt: user.createdAt,
-    });
+    const redirectUrl = user.registerSteps
+      ? "admin?authenticated=true"
+      : "signup/startup?authenticated=true";
+    res.redirect(`${process.env.ALLOWED_ORIGIN}/${redirectUrl}`);
   }),
   update: tryCatch(async (req, res) => {
     const { registerSteps } = req.body;
@@ -436,7 +442,6 @@ const UserController = {
       const parsedData = JSON.parse(redisUserRecord);
       parsedData[String(id)].push(tokenId);
       client.setEx(String(id), 7 * 24 * 60, JSON.stringify(parsedData));
-      // console.log("Data: ", parsedData);
     } else {
       const blacklistedData = {
         [String(id)]: [tokenId],
@@ -444,10 +449,34 @@ const UserController = {
 
       client.setEx(String(id), 7 * 24 * 60, JSON.stringify(blacklistedData));
     }
-    res.clearCookie("jwt");
-    res.clearCookie("id");
-    res.clearCookie("registerSteps");
-    res.clearCookie("isVerified");
+    res.clearCookie("jwt", {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // Set to true if using HTTPS
+      httpOnly: true,
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
+    });
+    res.clearCookie("id", {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // Set to true if using HTTPS
+      httpOnly: true,
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
+    });
+    res.clearCookie("registerSteps", {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // Set to true if using HTTPS
+      httpOnly: true,
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
+    });
+    res.clearCookie("isVerified", {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // Set to true if using HTTPS
+      httpOnly: true,
+      domain:
+        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
+    });
     res.json({ message: "Good Bye!" });
   }),
 };

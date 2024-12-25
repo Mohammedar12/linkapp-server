@@ -33,49 +33,51 @@ router.get(
     session: false,
   }),
 
-  (req, res) => {
-    console.log("Successfully authenticated with Google");
+  UserController.googleAuth
 
-    const { user, token } = req.user;
+  // (req, res) => {
+  //   console.log("Successfully authenticated with Google");
 
-    res.cookie("jwt", token, {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      httpOnly: true,
-      domain:
-        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
-    });
+  //   const { user, token } = req.user;
 
-    res.cookie("registerSteps", user.registerSteps, {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax", // Set to true if using HTTPS
-      httpOnly: true,
-      domain:
-        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
-    });
+  //   res.cookie("jwt", token, {
+  //     secure: process.env.NODE_ENV === "production",
+  //     sameSite: "lax",
+  //     httpOnly: true,
+  //     domain:
+  //       process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
+  //   });
 
-    res.cookie("isVerified", user.isVerified, {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax", // Set to true if using HTTPS
-      httpOnly: true,
-      domain:
-        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
-    });
+  //   res.cookie("registerSteps", user.registerSteps, {
+  //     secure: process.env.NODE_ENV === "production",
+  //     sameSite: "lax", // Set to true if using HTTPS
+  //     httpOnly: true,
+  //     domain:
+  //       process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
+  //   });
 
-    res.cookie("id", user._id, {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      httpOnly: true,
-      domain:
-        process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+  //   res.cookie("isVerified", user.isVerified, {
+  //     secure: process.env.NODE_ENV === "production",
+  //     sameSite: "lax", // Set to true if using HTTPS
+  //     httpOnly: true,
+  //     domain:
+  //       process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
+  //   });
 
-    const redirectUrl = user.registerSteps
-      ? "admin?authenticated=true"
-      : "signup/startup?authenticated=true";
-    res.redirect(`${process.env.ALLOWED_ORIGIN}/${redirectUrl}`);
-  }
+  //   res.cookie("id", user._id, {
+  //     secure: process.env.NODE_ENV === "production",
+  //     sameSite: "lax",
+  //     httpOnly: true,
+  //     domain:
+  //       process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
+  //     maxAge: 7 * 24 * 60 * 60 * 1000,
+  //   });
+
+  //   const redirectUrl = user.registerSteps
+  //     ? "admin?authenticated=true"
+  //     : "signup/startup?authenticated=true";
+  //   res.redirect(`${process.env.ALLOWED_ORIGIN}/${redirectUrl}`);
+  // }
 );
 router.post("/login", validator(loginSchema), UserController.login);
 router.put(
