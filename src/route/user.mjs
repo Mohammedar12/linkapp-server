@@ -38,15 +38,12 @@ router.get(
 
     const { user, token } = req.user;
 
-    res.cookie("jwt1", token, {
+    res.cookie("jwt", token, {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       httpOnly: true,
       domain:
         process.env.NODE_ENV === "production" ? ".waslsa.com" : "localhost",
-    });
-    res.cookie("jwt", token, {
-      httpOnly: true,
     });
 
     res.cookie("registerSteps", user.registerSteps, {
