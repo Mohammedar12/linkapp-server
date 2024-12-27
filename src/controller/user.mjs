@@ -336,7 +336,11 @@ const UserController = {
     if (!user) {
       return res
         .status(401)
-        .json({ message: "User Not Exists !", Invalid: true });
+        .json({
+          message: "User Not Exists !",
+          Invalid: true,
+          emailSent: false,
+        });
     }
 
     let verifyToken = generateVerifyToken();
@@ -370,6 +374,7 @@ const UserController = {
 
     return res.status(200).json({
       message: "verification token has been sent to your email",
+      emailSent: true,
       user: {
         id: updatedUser._id,
         email: updatedUser.email,
