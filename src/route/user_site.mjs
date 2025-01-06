@@ -22,6 +22,6 @@ router.post("/addLinks", UserSiteController.addLinks);
 router.put("/editLinks/:id", UserSiteController.editLinks);
 
 router.put("/reorder", limiter, UserSiteController.reorder);
-router.delete("/remove", UserSiteController.remove);
+router.delete("/remove", UserSiteController.removeLinks);
 
 export default router;

@@ -137,17 +137,20 @@ const UserSiteSchema = new Schema(
     location: {
       type: String,
     },
-
     about: {
       type: String,
       trim: true,
       maxlength: 500,
     },
+    reports: {
+      type: Schema.Types.ObjectId,
+      ref: "Reports",
+    },
     avatar: ImageSchema,
     role: {
       type: String,
       default: "user",
-      enum: ["user", "admin", "moderator"],
+      enum: ["user", "admin"],
     },
     isActive: {
       type: Boolean,

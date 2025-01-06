@@ -172,8 +172,6 @@ const UserSiteController = {
       return _.isEqual(value, _.get(existingSite, key));
     });
 
-    // console.log("Fields to update:", JSON.stringify(fieldsToUpdate, null, 2));
-
     // If there are no fields to update, return the existing document
     if (_.isEmpty(fieldsToUpdate)) {
       return res.json(existingSite);
@@ -349,7 +347,7 @@ const UserSiteController = {
       });
     }
   }),
-  remove: tryCatch(async (req, res) => {
+  removeLinks: tryCatch(async (req, res) => {
     const user = req.cookies["id"];
     const { itemId } = req.body;
     const io = req.app.get("io");

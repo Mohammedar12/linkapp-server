@@ -1,11 +1,14 @@
 import express from "express";
 import cors from "cors";
 import passport from "passport";
+import useragent from "express-useragent";
+import requestIp from "request-ip";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import dbConnect from "./config/db.mjs";
 import "./auth/passport.mjs";
 import user from "./route/user.mjs";
+import reports from "./route/reports.mjs";
 import userSite from "./route/user_site.mjs";
 import links from "./route/links.mjs";
 import headers from "./route/headers.mjs";
@@ -89,15 +92,20 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(useragent.express());
+app.use(requestIp.mw());
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
+
+app.set("trust proxy", true);
 app.use("/", user);
 
 app.use("/sites", userSite);
 app.use("/links", links);
 app.use("/headers", headers);
+app.use("/reports", reports);
 
 app.use(errorHandler);
 
