@@ -107,7 +107,7 @@ SiteReportsSchema.methods.incrementAnalytics = async function (data) {
   );
 
   //  If session does exist update lastVisit
-  if (!sessionIndex) {
+  if (sessionIndex) {
     sessionIndex.lastVisit = new Date();
     sessionIndex.expiresAt = new Date(Date.now() + 10 * 60 * 1000);
   } else {
