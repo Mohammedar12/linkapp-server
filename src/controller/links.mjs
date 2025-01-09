@@ -42,22 +42,16 @@ const linksController = {
     const addlink = await newLink.save();
     res.json(addlink);
   }),
-  upadte: tryCatch(async (req, res) => {
-    const { url, title, index, display } = req.body;
-    const id = req.cookies["id"];
-    const io = req.app.get("io");
-    const updateData = {
-      url,
-      title,
-      index,
-    };
-    if (display !== undefined) {
-      updateData.display = display;
-    }
+  addClicks: tryCatch(async (req, res) => {
+    const id = req.params.id;
+
+    const links = await Links.findById(id);
+
+    console.log(links);
 
     const updatedLink = await Links.findByIdAndUpdate(
-      req.params.id,
-      updateData,
+      { _id: id },
+      { clicks: links.clicks + 1 },
       { new: true }
     );
     if (!updatedLink) {

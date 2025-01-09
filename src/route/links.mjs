@@ -4,7 +4,7 @@ import isAuthenticated from "../middleware/passport.mjs";
 const router = Router();
 router.get("/", isAuthenticated, linkController.index);
 router.post("/new", isAuthenticated, linkController.create);
-router.put("/:id", isAuthenticated, linkController.upadte);
+router.post("/:id", linkController.addClicks);
 router.delete("/:id", isAuthenticated, linkController.remove);
 
 export default router;
