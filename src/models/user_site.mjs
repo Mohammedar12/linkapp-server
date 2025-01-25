@@ -109,6 +109,9 @@ const UserSiteSchema = new Schema(
       lowercase: true,
       trim: true,
     },
+    svgSlug: {
+      type: String,
+    },
     links: [{ type: mongoose.Schema.Types.ObjectId, ref: "Links" }],
     headers: [
       {

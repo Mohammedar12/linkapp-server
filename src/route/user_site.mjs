@@ -10,18 +10,24 @@ import limiter from "../utils/limiter.mjs";
 
 const router = Router();
 router.get("/slug/:slug", UserSiteController.index);
-router.get("/site/:id", UserSiteController.id);
+router.get("/site/:id", isAuthenticated(), UserSiteController.id);
 router.post(
   "/create",
+  isAuthenticated(),
   validator(createUserSiteSchema),
   uploadFields,
   UserSiteController.create
 );
-router.put("/update", uploadFields, UserSiteController.update);
-router.post("/addLinks", UserSiteController.addLinks);
-router.put("/editLinks/:id", UserSiteController.editLinks);
+router.put(
+  "/update",
+  isAuthenticated(),
+  uploadFields,
+  UserSiteController.update
+);
+router.post("/addLinks", isAuthenticated(), UserSiteController.addLinks);
+router.put("/editLinks/:id", isAuthenticated(), UserSiteController.editLinks);
 
-router.put("/reorder", limiter, UserSiteController.reorder);
-router.delete("/remove", UserSiteController.removeLinks);
+router.put("/reorder", limiter, isAuthenticated(), UserSiteController.reorder);
+router.delete("/remove", isAuthenticated(), UserSiteController.removeLinks);
 
 export default router;
