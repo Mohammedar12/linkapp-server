@@ -1,64 +1,82 @@
 import passport from "passport";
 import client from "./../services/redis.mjs";
 
-const isAuthenticated = (req, res, next) => {
-  passport.authenticate("jwt", { session: false }, async (err, user, info) => {
-    console.log(user, "authenticateuser");
+const isAuthenticated = (allowedRoles = []) => {
+  return async (req, res, next) => {
+    passport.authenticate(
+      "jwt",
+      { session: false },
+      async (err, user, info) => {
+        try {
+          // Check for authentication errors
+          if (err) {
+            return res.status(500).json({ message: "Internal Server Error" });
+          }
 
-    try {
-      if (err) {
-        console.error("Passport authentication error:", err);
-        return res.status(500).json({ message: "Internal Server Error" });
+          // Verify user exists
+          if (!user) {
+            return res
+              .status(401)
+              .json({ message: "Unauthorized: Invalid token" });
+          }
+
+          // Check for token in cookies
+          const token = req?.cookies?.jwt?.token;
+          if (!token) {
+            return res
+              .status(401)
+              .json({ message: "Unauthorized: Token not provided" });
+          }
+
+          // Check Redis for token blacklist
+          const redisUser = await client.get(String(user._id));
+          if (!redisUser) {
+            // First-time login or no Redis data
+            req.user = user;
+            return next();
+          }
+
+          const parsedUserData = JSON.parse(redisUser);
+          const tokenFromRedis = parsedUserData[String(user._id)];
+          console.log(user);
+
+          // Validate token against blacklist
+          if (!tokenFromRedis || !Array.isArray(tokenFromRedis)) {
+            return res
+              .status(401)
+              .json({ message: "Unauthorized: Invalid token data" });
+          }
+
+          const isTokenBlacklisted = tokenFromRedis.some(
+            (tokenRedis) => tokenRedis === token
+          );
+
+          if (isTokenBlacklisted) {
+            return res
+              .status(401)
+              .json({ message: "Unauthorized: Token is blacklisted" });
+          }
+
+          if (
+            allowedRoles.length === 0 ||
+            (user.role && allowedRoles.includes(user.role))
+          ) {
+            req.user = user;
+            return next();
+          }
+
+          // If user's role is not allowed
+          return res.status(403).json({
+            message: "Forbidden: Insufficient permissions",
+            userRole: user.role,
+            allowedRoles: allowedRoles,
+          });
+        } catch (err) {
+          res.status(500).json({ message: "Internal Server Error" });
+        }
       }
-      if (!user) {
-        console.log("No user found in JWT payload");
-        return res.status(401).json({ message: "Unauthorized: Invalid token" });
-      }
-
-      const token = req?.cookies?.jwt?.token;
-      if (!token) {
-        console.log("No token provided in cookies");
-        return res
-          .status(401)
-          .json({ message: "Unauthorized: Token not provided" });
-      }
-
-      console.log(`Checking Redis for user ${user._id}`);
-      const redisUser = await client.get(String(user._id));
-      if (!redisUser) {
-        console.log(`No Redis data found for user ${user._id}`);
-        return next(); // Allow the request to proceed if no Redis data (might be first-time login)
-      }
-
-      const parsedUserData = JSON.parse(redisUser);
-      const tokenFromRedis = parsedUserData[String(user._id)];
-
-      if (!tokenFromRedis || !Array.isArray(tokenFromRedis)) {
-        console.log(`Invalid token data in Redis for user ${user._id}`);
-        return res
-          .status(401)
-          .json({ message: "Unauthorized: Invalid token data" });
-      }
-
-      const tokenMatch = tokenFromRedis.some(
-        (tokenRedis) => tokenRedis === token
-      );
-
-      if (tokenMatch) {
-        console.log(`Token mismatch for user ${user._id}`);
-        return res
-          .status(401)
-          .json({ message: "Unauthorized: Token in Black list" });
-      }
-
-      console.log(`User ${user._id} successfully authenticated`);
-      req.user = user; // Attach the user object to the request
-      next();
-    } catch (err) {
-      console.error("Error in authentication middleware:", err);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  })(req, res, next);
+    )(req, res, next);
+  };
 };
 
 export default isAuthenticated;

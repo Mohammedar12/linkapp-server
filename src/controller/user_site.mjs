@@ -3,6 +3,7 @@ import { User } from "../models/user.mjs";
 import { Links } from "../models/links.mjs";
 import { tryCatch } from "../utils/tryCatch.mjs";
 import { upload } from "../utils/cloudinary.mjs";
+import TextToSVG from "text-to-svg";
 import mongoose from "mongoose";
 import fs from "fs";
 import "dotenv/config";
@@ -17,6 +18,19 @@ const handleFileUpload = async (file, dir) => {
   return uploadedFile;
 };
 
+const textToSVG = TextToSVG.loadSync(
+  "./assets/nexa-rust.handmade-extended.otf"
+);
+
+const attributes = { fill: "", stroke: "black" };
+const options = {
+  x: 0,
+  y: 0,
+  fontSize: 72,
+  anchor: "top",
+  attributes: attributes,
+};
+
 const UserSiteController = {
   index: tryCatch(async (req, res) => {
     const slug = req.params.slug;
@@ -28,6 +42,7 @@ const UserSiteController = {
 
     if (!site) {
       return res.json({
+        isExists: false,
         isActive: false,
         message: "Sorry This Site Not Exist",
       });
@@ -35,6 +50,7 @@ const UserSiteController = {
 
     if (!site.isActive) {
       return res.json({
+        isExists: true,
         isActive: site.isActive,
         message: "the site not active yet",
       });
@@ -60,6 +76,8 @@ const UserSiteController = {
     const id = req.cookies["id"];
     const user = await User.findById({ _id: id });
 
+    const svgSlug = textToSVG.getD(slug, options);
+
     const avatar = req.files?.avatar
       ? await handleFileUpload(req.files.avatar[0], "avatar")
       : null;
@@ -69,6 +87,7 @@ const UserSiteController = {
       user: id,
       slug: formattedSlug || slug,
       social: JSON.parse(social),
+      svgSlug: svgSlug,
       about,
       avatar,
       title,
@@ -128,6 +147,11 @@ const UserSiteController = {
       experience: experience || existingSite.experience,
       skills: skills ? JSON.parse(skills) : existingSite.skills,
     };
+
+    if (slug) {
+      const svgSlug = textToSVG.getD(slug, options);
+      newFields.svgSlug = svgSlug;
+    }
 
     const fieldsToUpdate = _.omitBy(newFields, (value, key) =>
       _.isEqual(value, _.get(existingSite, key))

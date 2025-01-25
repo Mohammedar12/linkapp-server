@@ -11,7 +11,8 @@ import cacheMiddleware from "../utils/cacheMiddleware.mjs";
 import passport from "passport";
 
 const router = Router();
-router.get("/user", isAuthenticated, UserController.user);
+router.get("/allusers", isAuthenticated("admin"), UserController.AllUsers);
+router.get("/user", isAuthenticated(), UserController.user);
 router.post("/sign-up", validator(signupSchema), UserController.signUp);
 router.get(
   "/auth/google",
@@ -83,7 +84,7 @@ router.post("/login", validator(loginSchema), UserController.login);
 router.put(
   "/updateuser",
   validator(updateUserSchema),
-  isAuthenticated,
+  isAuthenticated(),
   UserController.update
 );
 router.get("/verify", UserController.verifyUser);

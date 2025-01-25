@@ -6,7 +6,6 @@ import crypto from "crypto";
 import client from "./../services/redis.mjs";
 import nodemailer from "nodemailer";
 import { genPassword, validPassword } from "../utils/password.mjs";
-
 import { fileURLToPath } from "url";
 import path from "path";
 import { sendSendTemplateMail } from "../services/mail.mjs";
@@ -18,6 +17,46 @@ function generateVerifyToken() {
 }
 
 const UserController = {
+  AllUsers: tryCatch(async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 1;
+    const skipIndex = (page - 1) * limit;
+
+    const filters = {};
+
+    if (req.query.isVerified) filters.isVerified = req.query.isVerified;
+
+    const sortField = req.query.sort || "createdAt";
+    const sortOrder = req.query.order === "asc" ? 1 : -1;
+
+    // Search
+    if (req.query.search) {
+      filters.$or = [
+        { name: { $regex: req.query.search, $options: "i" } },
+        { email: { $regex: req.query.search, $options: "i" } },
+      ];
+    }
+
+    const projection = {
+      hash: 0, // Exclude sensitive fields
+      salt: 0, // Exclude sensitive fields
+      __v: 0,
+    };
+
+    const users = await User.find(filters, projection)
+      .sort({ [sortField]: sortOrder })
+      .limit(limit)
+      .skip(skipIndex);
+
+    const totalUsers = await User.countDocuments(filters);
+
+    res.json({
+      totalUsers,
+      totalPages: Math.ceil(totalUsers / limit),
+      currentPage: page,
+      users,
+    });
+  }),
   user: tryCatch(async (req, res) => {
     const id = req.cookies["id"];
 
@@ -29,7 +68,6 @@ const UserController = {
 
     res.json(user);
   }),
-
   signUp: tryCatch(async (req, res) => {
     const { email, password, username, role, avatar } = req.body;
 
@@ -334,13 +372,11 @@ const UserController = {
     const user = await User.findById({ _id: id });
     const email = user.email;
     if (!user) {
-      return res
-        .status(401)
-        .json({
-          message: "User Not Exists !",
-          Invalid: true,
-          emailSent: false,
-        });
+      return res.status(401).json({
+        message: "User Not Exists !",
+        Invalid: true,
+        emailSent: false,
+      });
     }
 
     let verifyToken = generateVerifyToken();
