@@ -5,13 +5,11 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 
-const { privateKey } = JSON.parse(process.env.PRIVATE_KEY);
+const privateKey = process.env.PRIVATE_KEY;
 
 const generateToken = (user) => {
   const _id = user._id;
   const verified = user.isVerified;
-
-  console.log(verified);
 
   const expiresIn = "15m";
 

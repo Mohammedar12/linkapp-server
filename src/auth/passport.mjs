@@ -7,8 +7,8 @@ import { fileURLToPath } from "url";
 import path from "path";
 import generateToken from "../utils/jwt.mjs";
 
-const { publicKey } = JSON.parse(process.env.PUBLIC_KEY);
-// JWT Configuration
+const publicKey = process.env.PUBLIC_KEY;
+
 let jwtOpts = {};
 let cookieExtractor = function (req) {
   if (req && req.cookies && req.cookies["jwt"] && req.cookies["jwt"].token) {
