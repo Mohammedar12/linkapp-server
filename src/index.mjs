@@ -87,7 +87,7 @@ app.set("io", io);
 app.set("userSockets", userSockets);
 
 const corsOptions = {
-  origin: [process.env.ALLOWED_ORIGIN, process.env.SERVER_ORIGIN],
+  origin: process.env.ALLOWED_ORIGIN,
   credentials: true,
 };
 
