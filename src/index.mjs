@@ -87,7 +87,7 @@ app.set("io", io);
 app.set("userSockets", userSockets);
 
 const corsOptions = {
-  origin: "https://wasl.iiali.com",
+  origin: process.env.ALLOWED_ORIGIN,
   credentials: true,
 };
 
