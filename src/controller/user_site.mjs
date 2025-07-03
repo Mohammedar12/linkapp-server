@@ -170,7 +170,17 @@ const UserSiteController = {
       match: { display: true },
     });
 
-    await User.findOneAndUpdate({ _id: id }, { username: fieldsToUpdate.slug });
+    // Only update username if slug is valid (not undefined or empty)
+    if (
+      fieldsToUpdate.slug &&
+      typeof fieldsToUpdate.slug === "string" &&
+      fieldsToUpdate.slug.trim() !== ""
+    ) {
+      await User.findOneAndUpdate(
+        { _id: id },
+        { username: fieldsToUpdate.slug }
+      );
+    }
 
     io.to(`user_${id}`).emit("site:update", {
       type: "SITE_UPDATE",
